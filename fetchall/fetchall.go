@@ -4,11 +4,13 @@ package main
 import (
     "fmt"
     "io"
-    "io/ioutil"
+    //"io/ioutil"
     "net/http"
     "os"
     "time"
+    "strings"
 )
+
 
 func main() {
     start := time.Now()
@@ -23,6 +25,16 @@ func main() {
 }
 
 func fetch(url string, ch chan<- string) {
+
+	var fileName = strings.Split(url,"//")[1] + ".txt"
+
+    f, err := os.OpenFile(fileName, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+    if err != nil {
+        ch <- fmt.Sprint(err) // send to channel ch
+        return
+    }
+    defer f.Close()
+
     start := time.Now()
     resp, err := http.Get(url)
     if err != nil {
@@ -30,7 +42,7 @@ func fetch(url string, ch chan<- string) {
         return
     }
 
-    nbytes, err := io.Copy(ioutil.Discard, resp.Body)
+    nbytes, err := io.Copy(f, resp.Body)
     resp.Body.Close() // don't leak resources
     if err != nil {
         ch <- fmt.Sprintf("while reading %s: %v", url, err)
