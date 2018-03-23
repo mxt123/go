@@ -1,13 +1,18 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 )
 
-func check(user, pass string) bool {
-	fmt.Printf(user + ":" + pass + "\n")
-	if user == "user" && pass == "password" {
+var (
+	user     = flag.String("user", "user", "username")
+	password = flag.String("password", "password", "password")
+)
+
+func check(u, p string) bool {
+	if u == *user && p == *password {
 		return true
 	} else {
 		return false
@@ -15,17 +20,32 @@ func check(user, pass string) bool {
 	}
 }
 
+//http://www.golangprograms.com/example-to-handle-get-and-post-request-in-golang.html
 func handler(w http.ResponseWriter, r *http.Request) {
-	user, pass, _ := r.BasicAuth()
-	if !check(user, pass) {
+	u, p, _ := r.BasicAuth()
+	if !check(u, p) {
 		http.Error(w, "Unauthorised.", 401)
 		return
 	} else {
-		fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
+		switch r.Method {
+		case "GET":
+			http.ServeFile(w, r, r.URL.Path[1:])
+		case "POST":
+			if err := r.ParseForm(); err != nil {
+				fmt.Fprintf(w, "ParseForm() err: %v", err)
+				return
+			}
+			for key, values := range r.Form {
+				for _, value := range values {
+					fmt.Fprint(w, key, ",", value)
+				}
+			}
+		}
 	}
 }
 
 func main() {
+	flag.Parse()
 	http.HandleFunc("/", handler)
 	http.ListenAndServe(":8083", nil)
 }
