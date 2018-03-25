@@ -20,7 +20,6 @@ func check(u, p string) bool {
 	}
 }
 
-//http://www.golangprograms.com/example-to-handle-get-and-post-request-in-golang.html
 func handler(w http.ResponseWriter, r *http.Request) {
 	u, p, _ := r.BasicAuth()
 	if !check(u, p) {
