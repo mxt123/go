@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
 
 	_ "github.com/denisenkom/go-mssqldb"
@@ -17,6 +16,7 @@ var (
 	dbPassword = flag.String("dbPassword", "validate", "password")
 	server     = flag.String("server", "localhost", "Server to connect to")
 	dbName     = flag.String("dbname", "validate", "Database name")
+	db         *sql.DB
 )
 
 func check(u, p string) bool {
@@ -41,37 +41,55 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		for key, values := range r.Form {
 			for _, value := range values {
 				fmt.Fprint(w, key, ",", value)
+				logPost(key + ":" + value)
 			}
 		}
 	}
 }
 
+func logPost(message string) (res sql.Result) {
+	//stmt, _ := db.Prepare("INSERT INTO validate.dbo.spam(data) VALUES(?)")
+	stmt, _ := db.Prepare("INSERT INTO validate.dbo.spam(data) VALUES('" + message + "')")
+	defer stmt.Close()
+	//res, err := stmt.Exec(message)
+	res, err := stmt.Exec()
+	if err != nil {
+		fmt.Println("From Insert() attempt: " + err.Error())
+	}
+	return res
+}
+
 func main() {
 
-	db, err := sql.Open("sqlserver", "server="+*server+";user id="+*dbUser+";password="+*dbPassword)
+	var err error
+
+	db, err = sql.Open("sqlserver", "server="+*server+";user id="+*dbUser+";password="+*dbPassword)
 
 	if err != nil {
 		fmt.Println("From Open() attempt: " + err.Error())
 	}
 	defer db.Close()
 
-	fmt.Println("connected")
+	//logPost("test", db)
+	/*
+		fmt.Println("connected")
 
-	var rows, _ = db.Query("select data from validate.dbo.spam")
+		var rows, _ = db.Query("select data from validate.dbo.spam")
 
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer rows.Close()
-
-	for rows.Next() {
-		var val string
-		if err := rows.Scan(&val); err != nil {
+		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(val)
-	}
+
+		defer rows.Close()
+
+		for rows.Next() {
+			var val string
+			if err := rows.Scan(&val); err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(val)
+		}
+	*/
 
 	flag.Parse()
 	http.HandleFunc("/", handler)
