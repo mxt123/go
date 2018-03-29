@@ -43,13 +43,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 				logPost(key + ":" + value)
 			}
 		}
+		w.Write([]byte("testy test test test"))
 	}
 }
 
 func logPost(message string) (res sql.Result) {
-	stmt, _ := db.Prepare("INSERT INTO xxx.dbo.spam(data) VALUES('" + message + "')") // cant use ? not sure why
-	defer stmt.Close()
-	res, err := stmt.Exec()
+	_, err := db.Exec("INSERT INTO xxx.dbo.spam(data) VALUES(&message)", sql.Named("message", message))
 	if err != nil {
 		fmt.Println("From Insert() attempt: " + err.Error())
 	}
