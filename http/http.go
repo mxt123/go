@@ -12,10 +12,10 @@ import (
 var (
 	user       = flag.String("user", "user", "username")
 	password   = flag.String("password", "password", "password")
-	dbUser     = flag.String("dbUser", "validate", "username")
-	dbPassword = flag.String("dbPassword", "validate", "password")
+	dbUser     = flag.String("dbUser", "xxx", "username")
+	dbPassword = flag.String("dbPassword", "xxx", "password")
 	server     = flag.String("server", "localhost", "Server to connect to")
-	dbName     = flag.String("dbname", "validate", "Database name")
+	dbName     = flag.String("dbname", "xxx", "Database name")
 	db         *sql.DB
 )
 
@@ -48,8 +48,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func logPost(message string) (res sql.Result) {
-	//stmt, _ := db.Prepare("INSERT INTO validate.dbo.spam(data) VALUES(?)")
-	stmt, _ := db.Prepare("INSERT INTO validate.dbo.spam(data) VALUES('" + message + "')")
+	//stmt, _ := db.Prepare("INSERT INTO xxx.dbo.spam(data) VALUES(?)")
+	stmt, _ := db.Prepare("INSERT INTO xxx.dbo.spam(data) VALUES('" + message + "')")
 	defer stmt.Close()
 	//res, err := stmt.Exec(message)
 	res, err := stmt.Exec()
@@ -74,7 +74,7 @@ func main() {
 	/*
 		fmt.Println("connected")
 
-		var rows, _ = db.Query("select data from validate.dbo.spam")
+		var rows, _ = db.Query("select data from xxx.dbo.spam")
 
 		if err != nil {
 			log.Fatal(err)
